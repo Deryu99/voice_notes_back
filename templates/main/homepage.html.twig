@@ -1,0 +1,256 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Voice Notes{% endblock %}
+
+{% block body %}
+    <div class="app-wrapper">
+    <div class="app-frame">
+
+    {# ── SIDEBAR ── #}
+    <aside class="sidebar">
+        <div class="sidebar__logo">
+            <div class="sidebar__logo-mark">app</div>
+            <div class="sidebar__logo-name">VoiceNotes</div>
+        </div>
+
+        <nav class="sidebar__nav">
+            <div class="sidebar__nav-label">Main</div>
+            <a href="#" class="sidebar__nav-item sidebar__nav-item--active">
+                <svg class="sidebar__nav-icon" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M2 10a8 8 0 1116 0A8 8 0 012 10zm8-4a1 1 0 00-1 1v3H6a1 1 0 100 2h3v3a1 1 0 102 0v-3h3a1 1 0 100-2h-3V7a1 1 0 00-1-1z"/>
+                </svg>
+                Dashboard
+            </a>
+            <a href="#" class="sidebar__nav-item">
+                <svg class="sidebar__nav-icon" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm1 3h10v1H5V6zm0 3h10v1H5V9zm0 3h6v1H5v-1z"/>
+                </svg>
+                Notes
+            </a>
+            <a href="#" class="sidebar__nav-item">
+                <svg class="sidebar__nav-icon" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                </svg>
+                Contacts
+            </a>
+
+            <div class="sidebar__nav-label">System</div>
+            <a href="#" class="sidebar__nav-item">
+                <svg class="sidebar__nav-icon" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
+                </svg>
+                Settings
+            </a>
+
+            <a href="{{ path('save_to_json') }}" class="sidebar__nav-item" data-action="save-json" onclick="return false;">
+                <svg class="sidebar__nav-icon" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M7 3.5A1.5 1.5 0 0 1 8.5 2h3.879a1.5 1.5 0 0 1 1.06.44l3.122 3.122A1.5 1.5 0 0 1 17 6.62V12.5a1.5 1.5 0 0 1-3 0v-1.5a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 0-.5.5v1.5a1.5 1.5 0 0 1-3 0V4.5A1.5 1.5 0 0 1 7 3.5z" />
+                    <path d="M10.5 10.5a.5.5 0 0 0-.5.5v5.793l1.146-1.147a.5.5 0 0 1 .708.708l-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 1 1 .708-.708L9.5 16.293V11a.5.5 0 0 0 .5-.5z" />
+                </svg>Save to Json</a>
+
+        </nav>
+
+        <div class="sidebar__footer">
+            <div class="sidebar__avatar-row">
+                <div class="sidebar__avatar">
+                    {{ app.user ? app.user.email|slice(0,2)|upper : 'ME' }}
+                </div>
+                <div class="sidebar__avatar-info">
+                    <div class="sidebar__avatar-name">
+                        {{ app.user ? app.user.email : 'myemail@gmail.com' }}
+                    </div>
+                    <div class="sidebar__avatar-role">Free plan</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    {# ── NOTES LIST ── #}
+    <section class="notes-list">
+        <div class="notes-list__header">
+            <div class="notes-list__title">My Notes</div>
+            <div class="notes-list__search">
+                <span class="notes-list__search-icon">⌕</span>
+                <input
+                    type="text"
+                    class="notes-list__search-input"
+                    placeholder="Search notes..."
+                    value="{{ searchQuery ?? '' }}"
+                >
+            </div>
+        </div>
+
+        <div class="notes-list__tabs">
+            <button class="notes-list__tab notes-list__tab--active">All</button>
+            <button class="notes-list__tab">Pinned</button>
+            <button class="notes-list__tab">Archived</button>
+        </div>
+
+        <ul class="notes-list__scroll">
+            {% for note in notes %}
+                <li class="note-card {% if selectedNote and selectedNote.id == note.id %}note-card--active{% endif %}">
+                    <div class="note-card__top">
+                        <span class="note-card__title">{{ note.title }}</span>
+                        <span class="note-card__date">{{ note.createdAt|date('d M') }}</span>
+                    </div>
+                    <p class="note-card__preview">{{ note.summary }}</p>
+                    {% if note.tags is not empty %}
+                        <div class="note-card__badges">
+                            {% for tag in note.tags %}
+                                <span class="note-card__badge">{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </li>
+            {% else %}
+                <li class="notes-list__empty">No notes found</li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    {# ── VOICE / CHAT PANEL ── #}
+    <main class="voice-panel">
+        <div class="voice-panel__header">
+            <div>
+                <div class="voice-panel__header-title">
+                    {{ selectedNote ? selectedNote.title : 'Select a note' }}
+                </div>
+                <div class="voice-panel__header-subtitle">
+                    {% if selectedNote %}
+                        {{ selectedNote.createdAt|date('d F Y') }} · {{ selectedNote.duration ?? '—' }} recording
+                    {% else %}
+                        Start by selecting or recording a note
+                    {% endif %}
+                </div>
+            </div>
+            <div class="voice-panel__header-actions">
+                <button class="icon-btn" title="Share">↗</button>
+                <button class="icon-btn" title="More options">···</button>
+            </div>
+        </div>
+
+        <div class="voice-panel__messages" id="messages">
+            {% for message in conversation %}
+                <div class="message message--{{ message.role }}">
+                    <div class="message__label">
+                        {{ message.role == 'ai' ? 'VNR AI' : 'You' }}
+                    </div>
+                    <div class="message__bubble">
+                        {{ message.content }}
+                    </div>
+                    <div class="message__time">
+                        {{ message.createdAt is defined ? message.createdAt|date('H:i') : '' }}
+                    </div>
+                </div>
+            {% else %}
+                <div class="voice-panel__empty">
+                    <p>No conversation yet. Start by recording or typing a note below.</p>
+                </div>
+            {% endfor %}
+        </div>
+
+        {# COMPOSER #}
+        <div class="composer">
+            <form method="post" action="" class="composer__form">
+                <div class="composer__box">
+                        <textarea
+                            class="composer__textarea"
+                            name="note"
+                            placeholder="Speak or type your note..."
+                            rows="3"
+                        ></textarea>
+                    <div class="composer__actions">
+                        <div class="composer__actions-left">
+                            <button type="button" class="composer__btn composer__btn--record" id="record-btn">
+                                ⏺ Record
+                            </button>
+                            <button type="button" class="composer__btn">
+                                📎 Attach
+                            </button>
+                        </div>
+                        <button type="submit" class="composer__send">
+                            Send ↵
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    {# ── DETAILS PANEL ── #}
+    <aside class="details-panel">
+        {% if selectedNote %}
+            <div class="details-panel__header">
+                <div class="details-panel__label">Note details</div>
+                <h3 class="details-panel__title">{{ selectedNote.title }}</h3>
+                <div class="details-panel__meta">
+                    <span>{{ selectedNote.createdAt|date('d M Y') }}</span>
+                    <span>{{ selectedNote.createdAt|date('H:i') }}</span>
+                </div>
+            </div>
+
+            <div class="details-panel__body">
+                {# Waveform visual (rendered by JS) #}
+                <div class="waveform" id="waveform"></div>
+
+                <div class="details-panel__section-label">Summary</div>
+                <p class="details-panel__text">{{ selectedNote.summary }}</p>
+
+                {% if selectedNote.tags is not empty %}
+                    <div class="details-panel__section-label">Tags</div>
+                    <div class="details-panel__tags">
+                        {% for tag in selectedNote.tags %}
+                            <span class="details-panel__tag">{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% if selectedNote.timeline is defined and selectedNote.timeline is not empty %}
+                    <div class="details-panel__section-label">Transcript timeline</div>
+                    <div class="details-panel__timeline">
+                        {% for item in selectedNote.timeline %}
+                            <div class="timeline-item">
+                                <div class="timeline-item__dot"></div>
+                                <div>
+                                    <div class="timeline-item__text">{{ item.text }}</div>
+                                    <div class="timeline-item__time">{{ item.timestamp }}</div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="details-panel__empty">
+                <p>Select a note to see its details.</p>
+            </div>
+        {% endif %}
+    </aside>
+
+    </div>{# /.app-frame #}
+    </div>{# /.app-wrapper #}
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        // Waveform decorativo
+        (function () {
+            const wf = document.getElementById('waveform');
+            if (!wf) return;
+            const heights = [8,14,22,18,10,28,32,20,14,24,30,16,12,26,34,20,10,18,28,14,22,16,30,24,10,18,22,14,28,32,18,12,26,20,14,30,16,24,10,22,28,18,12,20,32,14,26,10];
+            heights.forEach(function (h, i) {
+                const bar = document.createElement('div');
+                bar.className = 'waveform__bar';
+                bar.style.height = h + 'px';
+                bar.style.opacity = i < 32 ? '0.7' : '0.25';
+                wf.appendChild(bar);
+            });
+        })();
+
+        // Auto-scroll al último mensaje
+        (function () {
+            const msgs = document.getElementById('messages');
+            if (msgs) msgs.scrollTop = msgs.scrollHeight;
+        })();
+    </script>
+{% endblock %}
