@@ -74,8 +74,9 @@ class NoteService
             return null;
         }
 
-        $createdAtDate = DateTimeImmutable::createFromFormat('d-m-Y', $createdAt);
-        if (!$createdAtDate instanceof DateTimeImmutable) {
+        try {
+            $createdAtDate = new DateTimeImmutable($createdAt);
+        } catch (\Exception) {
             return null;
         }
 
