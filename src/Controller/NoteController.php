@@ -56,6 +56,13 @@ final class NoteController extends AbstractController
         return $this->json($payload, Response::HTTP_OK);
     }
 
+    #[Route('/search-notes', name: 'search_notes')]
+    public function searchNotes(Request $request): JsonResponse {
+        $query = $request->query->get('q');
+        $results = $this->noteService->findByText($query);
+        return $this->json($results, Response::HTTP_OK);
+    }
+
     #[Route('/update-note', name: 'update_note', methods: ['POST'])]
     public function saveNote(Request $request): JsonResponse {
         $payload = $this->parseJsonBody($request);

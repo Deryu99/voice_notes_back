@@ -41,6 +41,19 @@ class NoteRepository extends ServiceEntityRepository
     //        ;
     //    }
 
+    public function searchByText(string $query): array
+    {
+        return $this->createQueryBuilder('n')
+            ->where('n.title LIKE :q')
+            ->orWhere('n.summary LIKE :q')
+            ->orWhere('n.tags LIKE :q')
+            ->orderBy('n.createdAt', 'DESC')
+            ->setParameter('q', '%' . $query . '%')
+            ->setMaxResults(20)
+            ->getQuery()
+            ->getResult();
+    }
+
     public function save(Note $note, bool $flush = false): void
     {
         $this->getEntityManager()->persist($note);

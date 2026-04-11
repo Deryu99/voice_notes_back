@@ -162,6 +162,11 @@ class NoteService
         return $note;
     }
 
+    public function findByText(string $query): array
+    {
+        return $this->noteRepository->searchByText($query);
+    }
+
     public function toArray(Note $note): array
     {
         return [
