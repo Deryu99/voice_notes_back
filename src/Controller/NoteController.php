@@ -64,7 +64,7 @@ final class NoteController extends AbstractController
     }
 
     #[Route('/update-note', name: 'update_note', methods: ['POST'])]
-    public function saveNote(Request $request): JsonResponse {
+    public function updateNote(Request $request): JsonResponse {
         $payload = $this->parseJsonBody($request);
         if ($payload instanceof JsonResponse) {
             return $payload;
@@ -137,7 +137,7 @@ final class NoteController extends AbstractController
     {
         try {
             $data = json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
-        } catch (JsonException) {
+        } catch (\JsonException) {
             return $this->jsonError('Invalid JSON body', Response::HTTP_BAD_REQUEST);
         }
 
@@ -180,6 +180,20 @@ final class NoteController extends AbstractController
             }
 
             $fields['summary'] = $payload['summary'];
+        }
+
+        if (array_key_exists('tags', $payload)) {
+            if (!is_array($payload['tags'])) {
+                return $this->jsonError('Invalid tags format', Response::HTTP_BAD_REQUEST);
+            }
+
+            foreach ($payload['tags'] as $tag) {
+                if (!is_string($tag) || trim($tag) === '') {
+                    return $this->jsonError('Tags must be non-empty strings', Response::HTTP_BAD_REQUEST);
+                }
+            }
+
+            $fields['tags'] = array_map('trim', $payload['tags']);
         }
 
         if ($fields === []) {

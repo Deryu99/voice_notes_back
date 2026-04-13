@@ -158,6 +158,10 @@ class NoteService
             $note->setSummary($fields['summary']);
         }
 
+        if (array_key_exists('tags', $fields) && is_array($fields['tags'])) {
+            $note->setTags($fields['tags']);
+        }
+
         $this->noteRepository->flush();
         return $note;
     }
