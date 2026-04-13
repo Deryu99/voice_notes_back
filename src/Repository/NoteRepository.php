@@ -54,6 +54,28 @@ class NoteRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function deleteTagFromNote(int $id, string $tag): ?Note
+    {
+        $note = $this->find($id);
+        if (!$note instanceof Note) {
+            return null;
+        }
+
+        $tags = $note->getTags() ?? [];
+
+        // Remove the tag from the array
+        $updatedTags = array_filter(
+            $tags, fn($currentTag) => $currentTag !== $tag
+        );
+
+        // Re-index array to maintain consistency
+        $note->setTags(array_values($updatedTags));
+
+        $this->getEntityManager()->flush();
+
+        return $note;
+    }
+
     public function save(Note $note, bool $flush = false): void
     {
         $this->getEntityManager()->persist($note);

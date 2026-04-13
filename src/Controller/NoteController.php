@@ -108,6 +108,31 @@ final class NoteController extends AbstractController
         return $this->json(['success' => true], Response::HTTP_OK);
     }
 
+    #[Route('/delete-tag-from-note', name: 'delete_tag_from_note', methods: ['POST'])]
+    public function deleteTagFromNote(Request $request): JsonResponse {
+        $payload = $this->parseJsonBody($request);
+        if ($payload instanceof JsonResponse) {
+            return $payload;
+        }
+
+        $id = $this->extractValidId($payload);
+        if ($id instanceof JsonResponse) {
+            return $id;
+        }
+
+        $tag = $payload['tag'] ?? null;
+        if (!is_string($tag) || trim($tag) === '') {
+            return $this->jsonError('Invalid or missing tag', Response::HTTP_BAD_REQUEST);
+        }
+
+        $note = $this->noteService->deleteTagFromNote($id, trim($tag));
+        if (!$note instanceof Note) {
+            return $this->jsonError('Note not found', Response::HTTP_NOT_FOUND);
+        }
+
+        return $this->json(['success' => true, 'note' => $this->noteService->toArray($note)], Response::HTTP_OK);
+    }
+
     private function parseJsonBody(Request $request): array|JsonResponse
     {
         try {

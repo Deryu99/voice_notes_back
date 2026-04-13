@@ -167,6 +167,11 @@ class NoteService
         return $this->noteRepository->searchByText($query);
     }
 
+    public function deleteTagFromNote(int $id, string $tag): ?Note
+    {
+        return $this->noteRepository->deleteTagFromNote($id, $tag);
+    }
+
     public function toArray(Note $note): array
     {
         return [
