@@ -158,6 +158,10 @@ class NoteService
             $note->setSummary($fields['summary']);
         }
 
+        if (array_key_exists('tags', $fields) && is_array($fields['tags'])) {
+            $note->setTags($fields['tags']);
+        }
+
         $this->noteRepository->flush();
         return $note;
     }
@@ -165,6 +169,11 @@ class NoteService
     public function findByText(string $query): array
     {
         return $this->noteRepository->searchByText($query);
+    }
+
+    public function deleteTagFromNote(int $id, string $tag): ?Note
+    {
+        return $this->noteRepository->deleteTagFromNote($id, $tag);
     }
 
     public function toArray(Note $note): array

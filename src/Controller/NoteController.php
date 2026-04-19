@@ -5,7 +5,6 @@ namespace App\Controller;
 use App\Entity\Note;
 use App\Service\NoteService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Exception\JsonException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -64,7 +63,7 @@ final class NoteController extends AbstractController
     }
 
     #[Route('/update-note', name: 'update_note', methods: ['POST'])]
-    public function saveNote(Request $request): JsonResponse {
+    public function updateNote(Request $request): JsonResponse {
         $payload = $this->parseJsonBody($request);
         if ($payload instanceof JsonResponse) {
             return $payload;
@@ -108,11 +107,36 @@ final class NoteController extends AbstractController
         return $this->json(['success' => true], Response::HTTP_OK);
     }
 
+    #[Route('/delete-tag-from-note', name: 'delete_tag_from_note', methods: ['POST'])]
+    public function deleteTagFromNote(Request $request): JsonResponse {
+        $payload = $this->parseJsonBody($request);
+        if ($payload instanceof JsonResponse) {
+            return $payload;
+        }
+
+        $id = $this->extractValidId($payload);
+        if ($id instanceof JsonResponse) {
+            return $id;
+        }
+
+        $tag = $payload['tag'] ?? null;
+        if (!is_string($tag) || trim($tag) === '') {
+            return $this->jsonError('Invalid or missing tag', Response::HTTP_BAD_REQUEST);
+        }
+
+        $note = $this->noteService->deleteTagFromNote($id, trim($tag));
+        if (!$note instanceof Note) {
+            return $this->jsonError('Note not found', Response::HTTP_NOT_FOUND);
+        }
+
+        return $this->json(['success' => true, 'note' => $this->noteService->toArray($note)], Response::HTTP_OK);
+    }
+
     private function parseJsonBody(Request $request): array|JsonResponse
     {
         try {
             $data = json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
-        } catch (JsonException) {
+        } catch (\JsonException) {
             return $this->jsonError('Invalid JSON body', Response::HTTP_BAD_REQUEST);
         }
 
@@ -155,6 +179,20 @@ final class NoteController extends AbstractController
             }
 
             $fields['summary'] = $payload['summary'];
+        }
+
+        if (array_key_exists('tags', $payload)) {
+            if (!is_array($payload['tags'])) {
+                return $this->jsonError('Invalid tags format', Response::HTTP_BAD_REQUEST);
+            }
+
+            foreach ($payload['tags'] as $tag) {
+                if (!is_string($tag) || trim($tag) === '') {
+                    return $this->jsonError('Tags must be non-empty strings', Response::HTTP_BAD_REQUEST);
+                }
+            }
+
+            $fields['tags'] = array_map('trim', $payload['tags']);
         }
 
         if ($fields === []) {
