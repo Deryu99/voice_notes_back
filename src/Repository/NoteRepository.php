@@ -61,12 +61,22 @@ class NoteRepository extends ServiceEntityRepository
             return null;
         }
 
-        $tags = $note->getTags() ?? [];
+        $tags = $note->getTags();
+        if (empty($tags)) {
+            return $note;
+        }
 
-        // Remove the tag from the array
+        $normalizedTag = trim($tag);
+
+        // Remove the tag from the array, normalizing whitespace on comparison
         $updatedTags = array_filter(
-            $tags, fn($currentTag) => $currentTag !== $tag
+            $tags, fn($currentTag) => trim($currentTag) !== $normalizedTag
         );
+
+        // If no tag was removed, return early without flushing
+        if (count($updatedTags) === count($tags)) {
+            return $note;
+        }
 
         // Re-index array to maintain consistency
         $note->setTags(array_values($updatedTags));
